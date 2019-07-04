@@ -1,6 +1,8 @@
 # -*- coding: utf8 -*-
 
 import os, os.path as op, sys
+from datetime import datetime as dt
+from datetime import timedelta as td
 
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -127,6 +129,20 @@ class YoutubeCrawler:
             for cmt in parsed_comments:
                 fp.write(cmt + '\n')
 
+    def delete_old_comments(self):
+        """
+        Delete saved comments after 30 days
+        :return None
+        """
+        today = dt.now()
+        for f in os.listdir('dataset'):
+            path = op.join('dataset', f)
+            stat = os.stat(path)
+            last_modify = dt.fromtimestamp(stat.st_mtime)
+            
+            if today - last_modify > td(days=30):
+                os.remove(path)
+
     @staticmethod
     def _parse_comments(comments, replies):
         """
@@ -186,6 +202,7 @@ if __name__ == '__main__':
         os.makedirs(op.join('dataset'))
 
     crawler = YoutubeCrawler()
+    crawler.delete_old_comments()
 
     input_str = input('Video id or the file of video ids: ')
 
